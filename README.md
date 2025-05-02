@@ -73,3 +73,9 @@ Write a program that reads FASTA files and reports the following statistics:
 
 For bonus points, also report the counts and probabilities of each letter.
 
+## Shotgun ##
+
+Simulate random shotgun sequencing of a genome. Given a genome of size X, read
+lengths of size Y, and read counts of number Z, write a program that reports
+the fraction of a genome that has not been hit.
+
