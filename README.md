@@ -72,6 +72,7 @@ Write a program that reads FASTA files and reports the following statistics:
 - N50 length
 
 For bonus points, also report the counts and probabilities of each letter.
+You are not allowed to `import statistics` or the equivalent.
 
 ## Shotgun ##
 
