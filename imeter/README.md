@@ -3,7 +3,8 @@ IMEter
 
 Intron-mediated enhancement is the general phenomenon that introns improve gene
 expression. The IMEter is a program that predicts how much an intron will
-increase expression. In this project, you will rebuild that tool and study.
+increase expression. In this project, you will rebuild that tool and parts of
+the original papers.
 
 ## Papers ##
 
@@ -15,8 +16,8 @@ These 2 papers are an easy read.
 ## Proximal vs. Distal Introns ##
 
 The IMEter is based on the simple concept that introns near the start of a gene
-are different from introns near the end of a gene. Your first task is to
-determine if this is true.
+are different from introns near the end of a gene. Your first task is to create
+datasets of proximal and distal introns.
 
 The `extract-introns.py` program extracts intron sequences from the FASTA and
 GFF files provided by TAIR (The Arabidopsis Information Resource). Try running
@@ -80,9 +81,9 @@ to the transcript are 284-365. It's genomic coordinates are 3914-3995 on
 Chromosome 1. The gene is on the forward (plus) strand, and the sequence is 82
 nt long. As expected, the intron begins with `GT` and ends with `AG`.
 
-Recall that our first goal is to determine if introns near the beginning of a
-gene are different from those near the end. To determine if this is true, you
-need to separate introns based on their position.
+Recall that introns near the beginning of a gene are supposedly different from
+those near the end. To determine if this is true, you need to separate introns
+based on their position.
 
 Examine the `isplitter.py` program to see how this can be done. The program
 reads through a FASTA file using the `korflab.readfasta()` function. It gets
@@ -105,9 +106,8 @@ python3 isplitter.py introns.fa 400 --high > dist400.fa
 
 You now have files of introns from proximal and distal introns. Are they
 different from each other? One way to find out is to compare the frequencies of
-nucleotides. We could use emboss tools as before, but let's use a python
-solution. You could probably write this yourself, but check out `kmercount.py`
-anyway.
+nucleotides. There are many ways to do this in python. You can write your own
+or use `kmercount.py`.
 
 ```
 python3 kmercount.py prox400.fa 1
@@ -124,9 +124,9 @@ python3 kmercount.py dist400.fa 1 --prob
 
 They are similar, but not exactly the same. Biological signals are often more
 like "words" than letters. So let's examine the differences using a larger size
-of kmer, such as 5. The problem is that there are 1024 5-mers, and trying to
-examine that by eye is going to be difficult. So let's save the results to
-files and compare them with a program.
+of kmer, such as 5. The problem is that there are 1024 5-mers, so trying to
+examine that by eye is going to be difficult. Let's save the results to files
+and compare them with a program.
 
 ```
 python3 kmercount.py prox400.fa 5 --prob > kmers-prox-400-5
@@ -134,13 +134,13 @@ python3 kmercount.py dist400.fa 5 --prob > kmers-dist-400-5
 python3 kmercompare.py kmers-prox-400-5 kmers-dist-400-5
 ```
 
-So there's a difference by some sort of measurement, but is that actually
-meaningful?
+So there's a difference by some sort of measurement, but is the difference
+biologically or statistically significant?
 
 ## Meaningful Comparisons ##
 
-To figure out proximal and distal introns are different from each other, we
-need some way of figuring out what is expected. One way to do this is to split
+To figure out if proximal and distal introns are different from each other, we
+need some way of measuring what is expected. One way to do this is to split
 each set of introns into 2 parts. Then compare the parts to each other. Are
 proximal introns similar to other proximal introns? Are distal introns similar
 to distal introns? Are they different from each other?
