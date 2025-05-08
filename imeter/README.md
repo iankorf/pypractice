@@ -252,6 +252,28 @@ below (but not identical because we may have split the sequences differently).
 Make a scatter plot and report the Pearson correlation.
 
 
+## Figure 3A ##
+
+If you look at Figure 3A from the tpc2000543.pdf paper, you will see the "IME
+motif". In subsequent studies, this has been shown to be sufficient to increase
+expression. Let's try to find that motif and maybe others using meme.
+
+First, find the highest scoring introns in the genome (e.g. top 100) and put
+them into a FASTA file. It's up to you to write that software. Then run
+meme to find motifs.
+
+Assuming you have such a file and have `meme` installed, try the following
+command (note that meme has many options, some of which will give different
+results).
+
+
+```
+meme -dna -minw 5 -maxw 10 -mod zoops -nmotifs 5 top100.fa
+```
+
+The output report is `meme_out/meme.html`.
+
+
 ## Figure 14.3 ##
 
 Everything that was done so far was done with a proximal-distal split at 400 nt
@@ -265,6 +287,6 @@ for k in range(1, 11):
 		do stuff...
 ```
 
-This is how Figure 14.3 was made in the 978-1-60327-563-7_14.pdf paper.
-
+This is how Figure 14.3 was made in the 978-1-60327-563-7_14.pdf paper. Can you
+automate it?
 

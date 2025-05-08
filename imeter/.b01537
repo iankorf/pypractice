@@ -2,7 +2,6 @@ import argparse
 import math
 import sys
 import korflab
-from scipy.stats import pearsonr
 
 def read_kmers(filename):
 	kdict = {}
@@ -12,19 +11,18 @@ def read_kmers(filename):
 			kdict[kmer] = float(prob)
 	return kdict
 
-parser = argparse.ArgumentParser(
-	description='compute IMEter score for introns')
+parser = argparse.ArgumentParser(description='get top-scoring introns')
 parser.add_argument('fasta', help='input fasta file')
 parser.add_argument('prox', help='proximal kmer table')
 parser.add_argument('dist', help='distal kmer table')
 parser.add_argument('k', type=int, help='kmer size')
+parser.add_argument('n', type=int, help='number of sequences to keep')
 arg = parser.parse_args()
 
 prox = read_kmers(arg.prox)
 dist = read_kmers(arg.dist)
 
-X = []
-Y = []
+top = {}
 for name, seq in korflab.readfasta(arg.fasta):
 	score = 0
 	for i in range(len(seq) - arg.k + 1):
@@ -32,10 +30,10 @@ for name, seq in korflab.readfasta(arg.fasta):
 		if kmer not in prox: continue
 		if kmer not in dist: continue
 		score += math.log2(prox[kmer] / dist[kmer])
-	f = name.split()
-	y = float(f[2][1:])
-	Y.append(y)
-	X.append(score)
-	print(score, y, sep='\t')
-p = pearsonr(X, Y)
-print(p.statistic, p.pvalue, file=sys.stderr)
+	top[seq] = score
+
+tops = sorted(top.items(), key=lambda x: x[1], reverse=True)
+
+for i, (k, v) in enumerate(tops):
+	print(f'>{i} {v}', k, sep='\n')
+	if i == arg.n -1: break
