@@ -79,3 +79,6 @@ Simulate random shotgun sequencing of a genome. Given a genome of size X, read
 lengths of size Y, and read counts of number Z, write a program that reports
 the fraction of a genome that has not been hit.
 
+## IMEter ##
+
+Rebuild the IMEter. See the `imeter` subdirectory.
