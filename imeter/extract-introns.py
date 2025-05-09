@@ -38,6 +38,7 @@ seq2gff = {
 	'chloroplast': 'ChrC'
 }
 
+seen = set()
 for defline, seq in korflab.readfasta(arg.fasta):
 	f = defline.split()
 	chrom = seq2gff[f[0]]
@@ -53,6 +54,8 @@ for defline, seq in korflab.readfasta(arg.fasta):
 			if ilength < arg.min_intron: continue
 			if ilength > arg.max_intron: continue
 			iseq = seq[ib-1:ie]
+			if iseq in seen: continue
+			seen.add(iseq)
 			if exons[i]['str'] == '+':
 				rb = ib - gmin + 1
 				re = ie - gmin + 1
