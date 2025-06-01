@@ -13,7 +13,7 @@ Write a function that returns the melting temperature of an oligo. Assume the
 input is a string.
 
 - For oligos <= 13 nt, Tm = (A+T)*2 + (G+C)*4
-- For longer oligos, Tm = 64.9 + 41*(G+C -16.4) / (A+T+G+C) 
+- For longer oligos, Tm = 64.9 + 41*(G+C -16.4) / (A+T+G+C)
 
 ## is_prime() ##
 
@@ -83,3 +83,8 @@ the fraction of a genome that has not been hit.
 ## IMEter ##
 
 Rebuild the IMEter. See the `imeter` subdirectory.
+
+## Machine Learning ##
+
+Write some programs that learn what biological patterns look like. See the
+`mldemo` subdirectory.

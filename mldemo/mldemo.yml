@@ -1,0 +1,9 @@
+name: mldemo
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pytorch
+  - pandas
+  - scikit-learn
