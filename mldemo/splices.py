@@ -10,6 +10,8 @@ parser.add_argument('--don', default='don.txt',
 	help='output donor file [%(default)s]')
 parser.add_argument('--length', type=int, default=10,
 	help='length of site [%(default)i]')
+parser.add_argument('--limit', type=int,
+	help='limit the number of sequences output')
 arg = parser.parse_args()
 
 acc = []
@@ -24,7 +26,11 @@ random.shuffle(acc)
 random.shuffle(don)
 
 with open(arg.acc, 'w') as afp:
-	for a in acc: print(a, file=afp)
+	for i, a in enumerate(acc):
+		if arg.limit and i == arg.limit: break
+		print(a, file=afp)
 
 with open(arg.don, 'w') as dfp:
-	for d in don: print(d, file=dfp)
+	for i, d in enumerate(don):
+		if arg.limit and i == arg.limit: break
+		print(d, file=dfp)

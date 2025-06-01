@@ -2,25 +2,29 @@ Sequence Patterns Machine Learning Demo
 =======================================
 
 In this unit, you will explore several ways to get a computer to recognize the
-differences between various kinds of genomic sequence. In other words, we're
-going to teach a computer how to "read the book of life". In genomic sequence,
-there tend to be 2 kinds of "features"
+parts of a gene (exon, intron, splice sites). In other words, you're going to
+teach a computer how to "read the book of life". In genomic sequence, there
+tend to be 2 kinds of "features".
 
 1. Fixed length features, like splice sites
 2. Variable length features, like exons and introns
 
 To model fixed length features, specifically splice donor and splice acceptor
-sites, we will use a Position Weight Matrices. For variable length features, we
+sites, we will use Position Weight Matrices. For variable length features, we
 will use kmers.
 
-Both of these constructs should be familiar to you. When we built the IMEter,
-that was a kmer model. When we found the motifs present in high scoring introns
-with MEME, those motifs were position weight matrices.
+Both of these constructs are familiar to you. When we built the IMEter, that
+was a kmer model. When we found the motifs present in high scoring introns with
+MEME, those motifs were position weight matrices.
 
-To create these models, we need exon and intron sequences. These are in the
-directory as `cds.fa.gz` (coding sequence) and `introns.fa.gz`.
+To create these models, we need exon and intron sequences. You can find these
+in the directory as `cds.fa.gz` (coding sequence) and `introns.fa.gz`. Both of
+these come from A. thaliana.
 
 ## Splice Sites ##
+
+Splice donor sites are at the start of introns. Splice acceptor sites are at
+the end of introns.
 
 ### True Sites
 
@@ -31,14 +35,15 @@ python3 splices.py introns.fa.gz
 ```
 
 This results in 2 files: `acc.txt` and `don.txt`. Use `less` to examine the
-files and you will find the sequences are all 10 nt long. The file names and 10
-are default parameters of the program, but these can be overridden with
-commandline options. When you write your own programs, do not hard-code paths
-or parameters unless you also provide a way to override them, like this program
-does.
+files and you will find the sequences are all 10 nt long. The file names and
+the number 10 are default parameters of the program, but these can be
+overridden with commandline options. When you write your own programs, do not
+hard-code paths or parameters unless you also provide a way to override them,
+like this program does.
 
 How many sequences are there? (hint: use `wc`). Did you notice this isn't the
-same number as the input sequences? Can you figure out why that is?
+same number as the input sequences? Can you figure out why that is? Try reading
+the program.
 
 How many unique sequences are there? (hint: use `sort -u`). Fewer. Do you think
 it's a good idea to remove duplicates?
@@ -62,6 +67,13 @@ Your PWMs might represent those sequences better than others. For this reason,
 you should randomize sequences before making a subset. The `splices.py` program
 does this automatically.
 
+Run `splice.py` again, this time with a limit of 20,000 sequences. 20k is still
+a lot of splices.
+
+```
+python3 splices.py introns.fa.gz --limit 20000
+```
+
 -----
 
 To create a PWM, run `pwm-maker.py`.
@@ -77,43 +89,115 @@ The output is basically the same as WebLogo but in numeric form.
 
 When you make a _model_ of something, the model represents a mathematical
 idealization of the data. It represents what you expect to see in the future.
-But how well does the model actually work? To start answering this question, we
-need some fake/decoy sites. We need to be able to ask "does some new
-observation look more like a real site or a fake site?" Where do we get fake
-sites?
+But how well does the model actually work at predicting the future? To start
+answering this question, we need some fake/decoy sites. We need to be able to
+ask "does some new observation look more like a real site or a fake site?" We
+know where to get real sites (previous genome annotation), but where do we get
+fake sites?
 
 We often compare _things_ to a random model, so it seems like generating random
 sequences is an okay place to start. But random sequences lack biological
 context. Another source of data _should_ be biological. What sequences are
 definitely not splice sites? That turns out to be a difficult question.
-Alternative splicing exists, and maybe our data would look different if we
-sequenced a different tissue. Here are some ideas for where fake sites might
-come from.
+Alternative splicing exists, some of the sites we might choose (e.g in the
+middle of an intron), might be alternative splice sites.
 
-- Intergenic sequence
-	- but how do we _know_ there is no gene there?
-- The middle of exons
-	- but how do we know there isn't any alternative splicing?
-	- and exons have different compositions compared to introns
-- Other GTs and AGs in introns
-	- but alternative splicing exists...
-- The opposite strand
-	- but is the composition on the opposite strand the same?
+We will make 2 kinds of fake data.
+
+- randomly generated sites
+- GT and AG sites from inside introns
+
+Here's how to make random donor and acceptor sites:
+
+```
+python3 random-splices.py 10 10 --donor
+python3 random-splices.py 10 10 --acceptor
+```
+
+Here's how to sample sites inside introns:
+
+```
+python3 decoy-splices.py introns.fa.gz 10 10 --donor
+python3 decoy-splices.py introns.fa.gz 10 10 --acceptor
+```
+
+### Training
+
+The biggest no-no of machine learning is testing and training on the same data.
+You should do all of your development on a training set and then once
+everything is done, you use the testing set to examine how well you did. To
+split files into distinct groups, use the `splitter.py` program.
+
+```
+python3 splitter.py acc.txt 2 acc
+python3 splitter.py don.txt 2 don
+```
+
+Your files are now split into 2 equal parts.
+
+- `acc.0.txt` training for acceptors
+- `acc.1.txt` testing for acceptors
+- `don.0.txt` training for donors
+- `don.1.txt` testing for donors
+
+Make PWMs for the training sets.
+
+```
+python3 pwm-maker.py acc.0.txt > acc.0.pwm
+python3 pwm-maker.py don.0.txt > don.0.pwm
+```
+
+Also make fake sequences.  These will be split into 2 sets, just like the
+normal data. Let's make 20K of each and that will split into 10k.
+
+```
+python3 random-splices.py 20000 10 --donor > don.random.txt
+python3 random-splices.py 20000 10 --acceptor > acc.random.txt
+python3 decoy-splices.py introns.fa.gz 20000 10 --donor > don.decoy.txt
+python3 decoy-splices.py introns.fa.gz 20000 10 --acceptor > acc.decoy.txt
+
+python3 splitter.py don.random.txt 2 don.random
+python3 splitter.py acc.random.txt 2 acc.random
+python3 splitter.py don.decoy.txt 2 don.decoy
+python3 splitter.py acc.decoy.txt 2 acc.decoy
+```
+
+Now, generate PWMs for the fake sequences.
+
+```
+python3 pwm-maker.py acc.random.0.txt > acc.random.0.pwm
+python3 pwm-maker.py don.random.0.txt > don.random.0.pwm
+python3 pwm-maker.py acc.decoy.0.txt > acc.decoy.0.pwm
+python3 pwm-maker.py don.decoy.0.txt > don.decoy.0.pwm
+```
+
+### Testing
+
+Now that we have some models trained, it's time to see if they work.
+
+```
+python3 tester.py don.0.pwm don.random.0.pwm don.1.txt don.random.1.txt
+python3 tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
+python3 tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
+python3 tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
+```
 
 
-fake data maker
-
-### Training & Testing
 
 
-something for sub-sampling to make test/train from everything
+## Exons and Introns ##
+
+Even though exons and introns are variable length features, for the purposes of
+this exercise, we are going to make them fixed length (for reasons you will see
+later). To create a kmer table for exon
+
+And then intron
+
+and then split into testing and training
 
 
 
-## Markov Models ##
 
-
-## Weight Array Matrix ##
 
 ## Perceptron ##
 
