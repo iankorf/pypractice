@@ -21,8 +21,17 @@ python3 pwm-maker.py don.random.0.txt > don.random.0.pwm
 python3 pwm-maker.py acc.decoy.0.txt > acc.decoy.0.pwm
 python3 pwm-maker.py don.decoy.0.txt > don.decoy.0.pwm
 
-python3 tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
-python3 tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
+python3 pwm-tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
+python3 pwm-tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
 
-python3 tester.py don.0.pwm don.random.0.pwm don.1.txt don.random.1.txt
-python3 tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
+python3 pwm-tester.py don.0.pwm don.random.0.pwm don.1.txt don.random.1.txt
+python3 pwm-tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
+
+python3 exon-intron.py cds.fa.gz 20000 > exons.txt
+python3 exon-intron.py introns.fa.gz 20000 > introns.txt
+
+python3 splitter.py exons.txt 2 exons
+python3 splitter.py introns.txt 2 introns
+
+python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4kmer
+python3 kmer-tester.py exon-vs-intron.4kmer exons.1.txt introns.1.txt

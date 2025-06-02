@@ -176,28 +176,68 @@ python3 pwm-maker.py don.decoy.0.txt > don.decoy.0.pwm
 Now that we have some models trained, it's time to see if they work.
 
 ```
-python3 tester.py don.0.pwm don.random.0.pwm don.1.txt don.random.1.txt
-python3 tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
-python3 tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
-python3 tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
+python3 pwm-tester.py don.0.pwm don.random.0.pwm don.1.txt don.random.1.txt
+python3 pwm-tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
+python3 pwm-tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
+python3 pwm-tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
 ```
 
-
+Weirdly, donor and acceptor don't behave the same. It's easier to discriminate
+between real donors and decoy (intron) donors, than real donors and random
+donors. Is this because introns don't want to have anything that looks like a
+donor because it might cause splicing? But for acceptors this is not true.
+There isn't that much difference discriminating between random acceptors and
+decoy acceptors, and random is actually easier. Do you think this might be true
+of all genomes?
 
 
 ## Exons and Introns ##
 
 Even though exons and introns are variable length features, for the purposes of
 this exercise, we are going to make them fixed length (for reasons you will see
-later). To create a kmer table for exon
+later). Run the following command lines to sample the exon and intron sequences
+and create files of fixed length sequence.
 
-And then intron
+```
+python3 exon-intron.py cds.fa.gz 20000 > exons.txt
+python3 exon-intron.py introns.fa.gz 20000 > introns.txt
+```
 
-and then split into testing and training
+Once again, we will split these into testing and training sets.
 
+```
+python3 splitter.py exons.txt 2 exons
+python3 splitter.py introns.txt 2 introns
+```
 
+Now it's time to build the model.
 
+```
+python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4kmer
+```
 
+Examine the `exon-intron.kmer4` file with `less`. Instead of a file of
+probabilities (which was used for PWMs), this is a file of log-odss ratios. A
+positive number means the sequence is more likely to occur in exons than
+introns. A negative number is the reverse. It's just like the IMEter.
+
+Let's see if it works.
+
+```
+python3 kmer-tester.py exon-vs-intron.4kmer exons.1.txt introns.1.txt
+```
+
+## Automation and Experimentation ##
+
+- What is the optimal size for k in exons vs. introns?
+- What happens if you test and train on the same data?
+- Would a PWM model work for exons and introns?
+- Would a kmer model work for splice sites?
+
+Write a script that answers these questions. If you're clever, you will
+automate the various procedures above. You'll also put the output files into
+new directories so that all the files aren't in the same place (the directory
+has gotten quite messy).
 
 ## Perceptron ##
 
