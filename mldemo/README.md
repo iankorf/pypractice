@@ -213,7 +213,7 @@ python3 splitter.py introns.txt 2 introns
 Now it's time to build the model.
 
 ```
-python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4kmer
+python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4.kmer
 ```
 
 Examine the `exon-intron.kmer4` file with `less`. Instead of a file of
@@ -224,27 +224,109 @@ introns. A negative number is the reverse. It's just like the IMEter.
 Let's see if it works.
 
 ```
-python3 kmer-tester.py exon-vs-intron.4kmer exons.1.txt introns.1.txt
+python3 kmer-tester.py exon-vs-intron.4.kmer exons.1.txt introns.1.txt
 ```
 
+## Cross-Validation ##
+
+In the experiments above, you trained a model on training data and tested it on
+testing data. While you're not allowed to train and test on the same data, you
+are allowed to swap positions of testing and training. That is, you can perform
+the whole operation twice and take the average of the two performance figures.
+This is useful when data is limiting. You can extend this concept to multiple
+data splits.
+
+- no cross-validation (what we did)
+	- train: set1
+	- test: set2
+- 2-fold cross-validation (swap training and testing)
+	- run 1:
+		- train: set1
+		- test: set2
+	- ru 2:
+		- train: set2
+		- test: set1
+- 3-fold cross-validation (train on more data than test)
+	- run 1:
+		- train: set1 + set2
+		- test: set3
+	- run 2:
+		- train: set1 + set3
+		- test: set2
+	- run 3:
+		- train: set2 + set3
+		- test: set1
+
+
 ## Automation and Experimentation ##
+
+- Can you automate the training and testing of PWMs?
+- Can you automate 2-fold cross-validation?
+- Can you make this tidy (keep files in 1 directory)?
+- Can you do the same for kmers?
+
+Questions:
 
 - What is the optimal size for k in exons vs. introns?
 - What happens if you test and train on the same data?
 - Would a PWM model work for exons and introns?
 - Would a kmer model work for splice sites?
 
-Write a script that answers these questions. If you're clever, you will
-automate the various procedures above. You'll also put the output files into
-new directories so that all the files aren't in the same place (the directory
-has gotten quite messy).
 
 ## Perceptron ##
 
-## Multi-layer Perceptron ##
+Neural networks are popular for many kinds of machine learning tasks. Let's
+build and test a neural network to recognize sequence features.
 
+The program we will use is called `mlp.py`. It's a little complicated to
+explain the code, but the usage is relatively simple.
 
+```
+python3 mlp.py
+```
 
-Splice sites
-Coding
-Intron
+You must give the program 2 files, a file of true sequences and a file of fake
+sequences. It will therefore work with the files you have already made.
+
+The next arguments are the "shape" of the neural network. For the splice site
+experiments that are 10 nt long, the first dimension maps the nucleotides to
+states with one-hot encoding. If there are 10 nts, there are 40 input states.
+The last dimension must be 1. So here's how to run one of the splice site
+experiments.
+
+```
+python3 mlp.py acc.txt acc.random.txt 40 1
+```
+
+The program automatically does x-fold cross-validation. For 2-fold (default) it
+reports the accuracy twice (to stderr) and then reports the average accuracy
+(to stdout).
+
+We can build a perceptron to recognize exons and introns also. We only need to
+change the input files and then change the first layer to match the 50 nt long
+sequences.
+
+```
+python3 mlp.py exons.txt introns.txt 200 1
+```
+
+### Multi-layer Perceptron ###
+
+To make a multi-layer perceptron, create layers between the input and output
+layers.
+
+```
+python3 mlp.py acc.txt acc.random.txt 40 10 1
+python3 mlp.py exons.txt introns.txt 200 20 1
+```
+
+Adding "hidden" layers between the input and output layers sometimes makes a
+neural network perform much better. But not always. "Tuning" a neural network
+for optimal perfomance requires modifying the hidden layers as well as a large
+numbe of other "hyper-parameters".
+
+## Shootout ##
+
+Which models work best for which kinds of sequences?
+
+Do you think your interpretation will hold up if you change genomes?

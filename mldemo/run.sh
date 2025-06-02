@@ -33,5 +33,13 @@ python3 exon-intron.py introns.fa.gz 20000 > introns.txt
 python3 splitter.py exons.txt 2 exons
 python3 splitter.py introns.txt 2 introns
 
-python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4kmer
-python3 kmer-tester.py exon-vs-intron.4kmer exons.1.txt introns.1.txt
+python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4.kmer
+python3 kmer-tester.py exon-vs-intron.4.kmer exons.1.txt introns.1.txt
+
+python3 mlp.py acc.txt acc.random.txt 40 1
+python3 mlp.py exons.txt introns.txt 200 1
+
+python3 mlp.py acc.txt acc.random.txt 40 10 1
+python3 mlp.py exons.txt introns.txt 200 20 1
+
+rm -f *.txt *.pwm *.kmer *.csv

@@ -20,6 +20,7 @@ def readpwm(file):
 def score_pwm(pwm, seq):
 	s = 1
 	for i, nt in enumerate(seq):
+		if nt not in pwm[i]: continue
 		s *= pwm[i][nt]
 	return s
 
@@ -42,7 +43,7 @@ for seq in readseq(arg.trueseq):
 	fake_score = score_pwm(fpwm, seq)
 	if true_score > fake_score: tp += 1
 	else:                       fp += 1
-	
+
 for seq in readseq(arg.fakeseq):
 	true_score = score_pwm(tpwm, seq)
 	fake_score = score_pwm(fpwm, seq)

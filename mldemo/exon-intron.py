@@ -1,5 +1,6 @@
 import argparse
 import random
+import re
 import korflab
 
 parser = argparse.ArgumentParser()
@@ -15,6 +16,7 @@ arg = parser.parse_args()
 seqs = []
 
 for defline, seq in korflab.readfasta(arg.fasta):
+	if not re.match('^[ACGT]+$', seq): continue
 	if arg.introns: seqs.append(seq[10:-10])
 	else:           seqs.append(seq)
 
