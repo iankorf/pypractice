@@ -33,11 +33,11 @@ fn = 0
 for seq in readseq(arg.exons):
 	s = score_model(model, seq, k)
 	if s > 0: tp += 1
-	else:     fp += 1
+	else:     fn += 1
 
 for seq in readseq(arg.introns):
 	s = score_model(model, seq, k)
-	if s > 0: fn += 1
+	if s > 0: fp += 1
 	else:     tn += 1
 
 print('True Positives:', tp)
