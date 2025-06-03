@@ -22,7 +22,7 @@ for defline, seq in korflab.readfasta(arg.introns):
 		if arg.donor:
 			if seq[i:i+2] == 'GT': sites.append(seq[i:i+arg.size])
 		elif arg.acceptor:
-			if seq[i:i+2] == 'AG': sites.append(seq[i-arg.size:i])
+			if seq[i:i+2] == 'AG': sites.append(seq[i-arg.size+2:i+2])
 
 random.shuffle(sites)
 for i in range(arg.seqs): print(sites[i])
