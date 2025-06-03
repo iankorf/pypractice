@@ -259,7 +259,7 @@ and create files of fixed length sequence.
 
 ```
 python3 exon-intron.py cds.fa.gz 20000 > exons.txt
-python3 exon-intron.py introns.fa.gz 20000 > introns.txt
+python3 exon-intron.py introns.fa.gz 20000 --introns > introns.txt
 ```
 
 Examine the `exons.txt` and `introns.txt` files with `less`. Can you see any
