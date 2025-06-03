@@ -42,12 +42,12 @@ for seq in readseq(arg.trueseq):
 	true_score = score_pwm(tpwm, seq)
 	fake_score = score_pwm(fpwm, seq)
 	if true_score > fake_score: tp += 1
-	else:                       fp += 1
+	else:                       fn += 1
 
 for seq in readseq(arg.fakeseq):
 	true_score = score_pwm(tpwm, seq)
 	fake_score = score_pwm(fpwm, seq)
-	if true_score > fake_score: fn += 1
+	if true_score > fake_score: fp += 1
 	else:                       tn += 1
 
 print('True Positives:', tp)
