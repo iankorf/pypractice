@@ -2,9 +2,9 @@ Sequence Patterns Machine Learning Demo
 =======================================
 
 In this unit, you will explore several ways to get a computer to recognize the
-parts of a gene (exon, intron, splice sites). In other words, you're going to
-teach a computer how to "read the book of life". In genomic sequence, there
-tend to be 2 kinds of "features".
+parts of a gene (exon, intron, splice sites). Hey, you're going to teach a
+computer how to "read the book of life"! In genomic sequence, there tend to be
+2 kinds of "features".
 
 1. Fixed length features, like splice sites
 2. Variable length features, like exons and introns
@@ -83,7 +83,7 @@ python3 pwm-maker.py don.txt
 python3 pwm-maker.py acc.txt
 ```
 
-The output is basically the same as WebLogo but in numeric form.
+The output is basically the same as WebLogo, but in numeric form.
 
 ### Fake Sites
 
@@ -100,9 +100,20 @@ sequences is an okay place to start. But random sequences lack biological
 context. Another source of data _should_ be biological. What sequences are
 definitely not splice sites? That turns out to be a difficult question.
 Alternative splicing exists, some of the sites we might choose (e.g in the
-middle of an intron), might be alternative splice sites.
+middle of an intron), might be alternative splice sites. What other forms of
+non-splice sites might work?
 
-We will make 2 kinds of fake data.
+- GT and AG sites from exons
+- GT and AG sites from the opposite strand
+- GT and AG sites from intergenic sequence
+
+All of these have issues. Exons are typically GC-rich compared to introns.
+Sites on the opposite strand on introns will have the same GC-composition, but
+the As and Ts will be swapped (and the Gs and Cs). If composition is
+asymmetric, the opposite strand isn't a good model of fake splice sites.
+Intergenic sequence might be okay, except that it's not transcribed, and so it
+may have different properties. Caveats aside, we will make 2 kinds of fake
+data.
 
 - randomly generated sites
 - GT and AG sites from inside introns
@@ -124,7 +135,7 @@ python3 decoy-splices.py introns.fa.gz 10 10 --acceptor
 ### Training
 
 The biggest no-no of machine learning is testing and training on the same data.
-You should do all of your development on a training set and then once
+You should do all of your model building on a training set and then once
 everything is done, you use the testing set to examine how well you did. To
 split files into distinct groups, use the `splitter.py` program.
 
@@ -171,6 +182,10 @@ python3 pwm-maker.py acc.decoy.0.txt > acc.decoy.0.pwm
 python3 pwm-maker.py don.decoy.0.txt > don.decoy.0.pwm
 ```
 
+Take a look at all the files you made with `less`. Make sure all of the files
+contain what you expect. If something seems amiss, stop now and discuss with
+your lab partner or the instructors.
+
 ### Testing
 
 Now that we have some models trained, it's time to see if they work.
@@ -181,6 +196,13 @@ python3 pwm-tester.py don.0.pwm don.decoy.0.pwm don.1.txt don.decoy.1.txt
 python3 pwm-tester.py acc.0.pwm acc.random.0.pwm acc.1.txt acc.random.1.txt
 python3 pwm-tester.py acc.0.pwm acc.decoy.0.pwm acc.1.txt acc.decoy.1.txt
 ```
+
+You should find something like the following:
+
+- Donor vs. random: 83%
+- Donor vs. decoy: 97%
+- Acceptor vs. random: 81%
+- Acceptor vs. decoy: 78%
 
 Weirdly, donor and acceptor don't behave the same. It's easier to discriminate
 between real donors and decoy (intron) donors, than real donors and random
@@ -210,22 +232,25 @@ python3 splitter.py exons.txt 2 exons
 python3 splitter.py introns.txt 2 introns
 ```
 
-Now it's time to build the model.
+Examine the files with `less` to make sure they appear as they should. Now it's
+time to build the model.
 
 ```
 python3 kmer-maker.py exons.0.txt introns.0.txt 4 > exon-vs-intron.4.kmer
 ```
 
-Examine the `exon-intron.kmer4` file with `less`. Instead of a file of
+Examine the `exon-intron.r.kmer` file with `less`. Instead of a file of
 probabilities (which was used for PWMs), this is a file of log-odss ratios. A
 positive number means the sequence is more likely to occur in exons than
-introns. A negative number is the reverse. It's just like the IMEter.
+introns. A negative number is the reverse. It's similar to the IMEter.
 
 Let's see if it works.
 
 ```
 python3 kmer-tester.py exon-vs-intron.4.kmer exons.1.txt introns.1.txt
 ```
+
+You should see around 88% accuracy.
 
 ## Cross-Validation ##
 
@@ -243,7 +268,7 @@ data splits.
 	- run 1:
 		- train: set1
 		- test: set2
-	- ru 2:
+	- run 2:
 		- train: set2
 		- test: set1
 - 3-fold cross-validation (train on more data than test)
@@ -257,16 +282,19 @@ data splits.
 		- train: set2 + set3
 		- test: set1
 
+You can make as many splits as you have sequences. If you have 100 sequences
+and split it 100 ways, this is called jacknife.
 
 ## Automation and Experimentation ##
 
 - Can you automate the training and testing of PWMs?
-- Can you automate 2-fold cross-validation?
-- Can you make this tidy (keep files in 1 directory)?
+- Can you automate 2-fold cross-validation or higher?
+- Can you make this tidy (keep files organized in directories)?
 - Can you do the same for kmers?
 
 Questions:
 
+- What is the optimal length of PWMs?
 - What is the optimal size for k in exons vs. introns?
 - What happens if you test and train on the same data?
 - Would a PWM model work for exons and introns?
@@ -277,6 +305,15 @@ Questions:
 
 Neural networks are popular for many kinds of machine learning tasks. Let's
 build and test a neural network to recognize sequence features.
+
+This section needs new software. Install and then activate the "mldemo"
+environment using the `mldemo.yml` file provided.
+
+```
+module load conda
+conda env create -f mldemo.yml
+codna activate mldemo
+```
 
 The program we will use is called `mlp.py`. It's a little complicated to
 explain the code, but the usage is relatively simple.
@@ -289,13 +326,16 @@ You must give the program 2 files, a file of true sequences and a file of fake
 sequences. It will therefore work with the files you have already made.
 
 The next arguments are the "shape" of the neural network. For the splice site
-experiments that are 10 nt long, the first dimension maps the nucleotides to
+experiments that are 10 nt long, the first dimension maps the nucleotides to 4
 states with one-hot encoding. If there are 10 nts, there are 40 input states.
 The last dimension must be 1. So here's how to run one of the splice site
 experiments.
 
 ```
+python3 mlp.py don.txt don.random.txt 40 1
+python3 mlp.py don.txt don.decoy.txt 40 1
 python3 mlp.py acc.txt acc.random.txt 40 1
+python3 mlp.py acc.txt acc.decoy.txt 40 1
 ```
 
 The program automatically does x-fold cross-validation. For 2-fold (default) it
@@ -327,6 +367,6 @@ numbe of other "hyper-parameters".
 
 ## Shootout ##
 
-Which models work best for which kinds of sequences?
+Which models (PWM, Kmer, MLP) work best for which kinds of sequences?
 
 Do you think your interpretation will hold up if you change genomes?
